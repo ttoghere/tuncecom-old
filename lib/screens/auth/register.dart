@@ -1,5 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tuncecom/consts/consts_shelf.dart';
 import 'package:tuncecom/services/services_shelf.dart';
@@ -24,6 +28,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _emailFocusNode,
       _passwordFocusNode,
       _repeatPasswordFocusNode;
+  bool _isLoading = false;
+  final auth = FirebaseAuth.instance;
 
   final _formkey = GlobalKey<FormState>();
   XFile? _pickedImage;
@@ -61,6 +67,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isValid = _formkey.currentState!.validate();
     if (isValid) {
       FocusScope.of(context).unfocus();
+      try {
+        setState(() {
+          _isLoading = true;
+        });
+        await auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        Fluttertoast.showToast(
+            msg: "An account has been created",
+            toastLength: Toast.LENGTH_SHORT);
+      } catch (e) {
+        await MyAppFunctions.showErrorOrWarningDialog(
+          context: context,
+          subtitle: "Error: $e",
+          fct: () => Navigator.of(context).pop(),
+        );
+      }
     }
   }
 
